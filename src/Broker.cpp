@@ -3,9 +3,10 @@
 // Brokerens CreateTable funktion kan kun t�le en tr�d ad gangen. Skal enforces (mhb p� services)
 
 #include <list>
+#include <cstring>
 #include <algorithm>
 
-#pragma comment(lib,"sqlite3.lib")
+//#pragma comment(lib,"sqlite3.lib")
 
 #define _BROKERIMP
 
@@ -20,11 +21,11 @@ using namespace std;
 
 _BROKERIMP const char* SQLType(const int&)           { return "integer"; }
 _BROKERIMP const char* SQLType(const unsigned int&)  { return "integer"; }
-_BROKERIMP const char* SQLType(const long&)          { return "integer"; }    
+_BROKERIMP const char* SQLType(const long&)          { return "integer"; }
 _BROKERIMP const char* SQLType(const unsigned long&) { return "integer"; }
-_BROKERIMP const char* SQLType(const double&)        { return "real"; } 
+_BROKERIMP const char* SQLType(const double&)        { return "real"; }
 _BROKERIMP const char* SQLType(const char*)          { return "text"; }
-_BROKERIMP const char* SQLType(const int64_t&)       { return "integer"; }
+//_BROKERIMP const char* SQLType(const int64_t&)       { return "integer"; }
 
 
 static sqlite3* db = 0;
@@ -62,7 +63,7 @@ _BROKERIMP bool Commit() {
 
 _BROKERIMP void RollBack() {
 	char *zErrMsg = 0;
-  if(sqlite3_exec(db, "rollback transaction noname", 0, 0, &zErrMsg) != SQLITE_OK ){    
+  if(sqlite3_exec(db, "rollback transaction noname", 0, 0, &zErrMsg) != SQLITE_OK ){
     sqlite3_free(zErrMsg);
   }
 	transaction = false;
@@ -74,7 +75,7 @@ _BROKERIMP bool Transaction() {
 
 // ---- Buffer ----
 
-Buffer::Buffer(const char* column_name, int is_key) : 
+Buffer::Buffer(const char* column_name, int is_key) :
 	usage(is_key), column(0) {
 	if (column_name) {
     column = new char[strlen(column_name)+1];
@@ -112,27 +113,27 @@ private:
 	bool BindBuffer(int pos, unsigned long value)    { return sqlite3_bind_int(pStmt, pos, value)    == SQLITE_OK; }
 	bool BindBuffer(int pos, double value)           { return sqlite3_bind_double(pStmt, pos, value) == SQLITE_OK; }
 	bool BindBuffer(int pos, const char* value)      { return sqlite3_bind_text(pStmt, pos, value, -1, SQLITE_TRANSIENT) == SQLITE_OK; }
-	bool BindBuffer(int pos, int64_t value)          { return sqlite3_bind_int64(pStmt, pos, value)  == SQLITE_OK; }
+//	bool BindBuffer(int pos, int64_t value)          { return sqlite3_bind_int64(pStmt, pos, value)  == SQLITE_OK; }
 	void Fetch(int pos, int& var)                    { var = sqlite3_column_int(pStmt, pos); }
 	void Fetch(int pos, unsigned int& var)           { var = sqlite3_column_int(pStmt, pos); }
 	void Fetch(int pos, long& var)                   { var = sqlite3_column_int(pStmt, pos); }
-	void Fetch(int pos, unsigned long& var)          { var = sqlite3_column_int(pStmt, pos); }  
-	void Fetch(int pos, double& var)                 { var = sqlite3_column_double(pStmt, pos); } 
+	void Fetch(int pos, unsigned long& var)          { var = sqlite3_column_int(pStmt, pos); }
+	void Fetch(int pos, double& var)                 { var = sqlite3_column_double(pStmt, pos); }
 	void Fetch(int pos, const char*& var)            { var = reinterpret_cast<const char*>(sqlite3_column_text(pStmt, pos)); }
-	void Fetch(int pos, int64_t& var)                { var = sqlite3_column_int64(pStmt, pos); }
+//	void Fetch(int pos, int64_t& var)                { var = sqlite3_column_int64(pStmt, pos); }
 	sqlite3_stmt* pStmt;
 };
 
 // ---- BrokerImpl ----
 
 class BrokerImpl : public IBroker {
-public:	
+public:
 	BrokerImpl(const char* table, Broker& broker);
 	~BrokerImpl();
 	bool  CreateTable(const char*& errmsg);
 	bool  Execute(const char* SQL,const char*& errmsg);
 	bool  Select(const char* SQL,const char*& errmsg);
-	bool  AutoSelect(const char*& errmsg, const char* where_clause = 0, const char* order_by = 0); 
+	bool  AutoSelect(const char*& errmsg, const char* where_clause = 0, const char* order_by = 0);
 	bool  InsertThing(const void* thing,const char*& errmsg);
 	bool  UpdateThing(const void* thing,const char*& errmsg);
 	bool  DeleteThing(const void* thing,const char*& errmsg);
@@ -165,11 +166,11 @@ BrokerImpl::BrokerImpl(const char* _table, Broker& broker) : broker(broker), pre
 	if (_table) table = _table;
 	previous_broker = current_broker;
 	current_broker = this;
-} 
+}
 
 BrokerImpl::~BrokerImpl() {
 	// delete all buffers
-	for (std::list<Buffer*>::const_iterator i=buffers.begin(); i!=buffers.end(); ++i) 
+	for (std::list<Buffer*>::const_iterator i=buffers.begin(); i!=buffers.end(); ++i)
 		delete *i;
 	current_broker = previous_broker;
 }
@@ -202,7 +203,7 @@ bool BrokerImpl::CreateTable(const char*& errmsg) {
   // Fetch table column info.
 	static char msg[128];
   char *zErrMsg = 0;
-	textstream pragma; 
+	textstream pragma;
 	pragma << "PRAGMA table_info("<<table<<")" << ends;
   if(sqlite3_exec(db, pragma, callback, 0, &zErrMsg) !=SQLITE_OK ){
 		strcpy(msg,zErrMsg);
@@ -228,13 +229,13 @@ bool BrokerImpl::AlterTable(const char*& errmsg) {
 	return true;
 }
 
-void BrokerImpl::Append(Buffer* buffer) { 
-	buffers.push_back(buffer); 
+void BrokerImpl::Append(Buffer* buffer) {
+	buffers.push_back(buffer);
 }
 
 bool BrokerImpl::BindBuffers(const void* thing,Cursor* cursor, bool keys_only) const {
   for (std::list<Buffer*>::const_iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;	
+		Buffer& buffer = **i;
 		// If keys only then skip buffers that are not keys
 		if (keys_only && !buffer.is_key()) continue;
 		// Bind by position
@@ -290,7 +291,7 @@ bool BrokerImpl::UpdateThing(const void* thing,const char*& errmsg) {
 	}
 	sqlite3_finalize(pStmt);
 
-	return true; 
+	return true;
 }
 
 bool BrokerImpl::DeleteThing(const void* thing,const char*& errmsg) {
@@ -314,7 +315,7 @@ bool BrokerImpl::DeleteThing(const void* thing,const char*& errmsg) {
 		return false;
 	}
 	sqlite3_finalize(pStmt);
-	return true; 
+	return true;
 }
 
 bool BrokerImpl::Execute(const char* SQL, const char*& errmsg) {
@@ -331,14 +332,14 @@ bool BrokerImpl::Execute(const char* SQL, const char*& errmsg) {
 	}
 	sqlite3_finalize(pStmt);
 
-	return true; 
+	return true;
 }
 
 bool BrokerImpl::Select(const char* SQL,const char*& errmsg) {
 	// Buffer position used in fetching the col in the resultset
 	int pos = 0;
   for (std::list<Buffer*>::const_iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;	
+		Buffer& buffer = **i;
     // Assign position to buffer
     buffer.pos = pos++;
   }
@@ -420,7 +421,7 @@ void BrokerImpl::ConstructInsert(ostream& SQL, const void* thing) {
 	SQL << "INSERT INTO " << table << " (";
 
 	for (std::list<Buffer*>::iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;		
+		Buffer& buffer = **i;
 		// Add column name to list
 		if (i!=buffers.begin()) SQL << ", ";
 		SQL << buffer.column;
@@ -428,7 +429,7 @@ void BrokerImpl::ConstructInsert(ostream& SQL, const void* thing) {
 	int pos = 1;
 	SQL << ") VALUES (";
 	for (std::list<Buffer*>::iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;		
+		Buffer& buffer = **i;
 		buffer.pos = pos++;
 		if (i!=buffers.begin()) SQL << ", ";
     SQL << "?";
@@ -441,7 +442,7 @@ void BrokerImpl::ConstructUpdate(ostream& SQL, const void* thing) {
   int pos = 1;
   // Construct 'SET' part
 	for (std::list<Buffer*>::iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;	
+		Buffer& buffer = **i;
     // Skip key buffers (they go into the WHERE clause)
     if (buffer.is_key()) continue;
     // Bind by number
@@ -453,7 +454,7 @@ void BrokerImpl::ConstructUpdate(ostream& SQL, const void* thing) {
   // Construct the WHERE clause
   SQL << " WHERE ";
 	for (std::list<Buffer*>::iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;	
+		Buffer& buffer = **i;
 		if (!buffer.is_key()) continue;
     // Bind by number
     buffer.pos = pos++;
@@ -468,11 +469,11 @@ void BrokerImpl::ConstructDelete(ostream& SQL, const void* thing) {
 	SQL << "DELETE FROM " << table << " WHERE ";
   int pos = 1;
 	for (std::list<Buffer*>::iterator i=buffers.begin(); i!=buffers.end(); ++i) {
-		Buffer& buffer = **i;	
+		Buffer& buffer = **i;
 		// Build where clause from keys
 		if (buffer.is_key()) {
       // Bind by number
-      buffer.pos = pos++;     
+      buffer.pos = pos++;
       SQL << buffer.column << " = ? AND ";
     }
   }
@@ -494,9 +495,9 @@ Broker::~Broker() {
 bool Broker::DoCreateTable(const char*& errmsg) {
 	return impl->CreateTable(errmsg);
 }
-	
-bool Broker::DoExecute(const char* SQL, const char*& errmsg) { 
-	return impl->Execute(SQL,errmsg); 
+
+bool Broker::DoExecute(const char* SQL, const char*& errmsg) {
+	return impl->Execute(SQL,errmsg);
 }
 
 bool Broker::DoSelect(const char* SQL,const char*& errmsg) {
