@@ -3,12 +3,14 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include "Broker.h"
 #include "DefaultConverter.h"
 
 
 template <typename T, typename M, typename C> // Object type, member type
 class MemberBuffer : public Buffer, private C {
+	using C::buffer;
 public:
 	MemberBuffer(const char* column_name, M T::*member, int buffer_usage)
 	: Buffer(column_name, buffer_usage)

@@ -57,6 +57,12 @@ public:
 	virtual void Fetch(int pos, double& var)                 = 0;
 	virtual void Fetch(int pos, const char*& var)            = 0;
 //	virtual void Fetch(int pos, int64_t& var)                = 0;
+	template<class Enum,class=typename std::enable_if< std::is_enum<Enum>::value>::type>
+	void Fetch(int pos, Enum& var)
+	{
+		static_assert(sizeof(Enum)==sizeof(int));
+		Fetch(pos, reinterpret_cast<int&>(var));
+	}
 };
 
 

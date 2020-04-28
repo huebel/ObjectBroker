@@ -26,6 +26,8 @@ public:
 
 int main(int argc, char* argv[])
 {
+	try {
+
 	OpenDataBase("test.db");
 
 	TestBroker tb;
@@ -56,13 +58,16 @@ int main(int argc, char* argv[])
 
 	}
 
-	return 1;
-
 	tb.Select();
 
 	for (auto t: tb.all) {
 		std::cout << t.id << "," << t.dbl << std::endl;
 	}
 
+	}
+
+	catch (BrokerException& e) {
+		std::cerr << e << std::endl;
+	}
 	return 0;
 }

@@ -2,7 +2,7 @@
 
 #pragma once
 
-template <typename T>
+template <typename T, typename = void>
 class DefaultConverter {
 public:
 	const T& ToDB(const T& source) const   { return source; }
