@@ -1,16 +1,18 @@
 #include "../src/ObjectBroker.h"
 #include <list>
+#include <iostream>
 
 struct Test {
 	int	id;
+	double dbl;
 };
-
 
 class TestBroker : public ObjectBroker<Test> {
 public:
 	TestBroker() : ObjectBroker<Test>("test")
 	{
-		MapMember(&Test::id, "id");
+		MapKeyMember(&Test::id, "id");
+		MapMember(&Test::dbl, "double");
 	}
 
 	virtual Test* CreateObject() { return new Test(); }
@@ -24,9 +26,43 @@ public:
 
 int main(int argc, char* argv[])
 {
+	OpenDataBase("test.db");
+
 	TestBroker tb;
 
 	tb.CreateTable();
+
+	for (int i=0; i<5; ++i) {
+
+		Test t0 { i*42, i*3.1415926 };
+		tb.Insert(t0);
+
+	}
+
+	tb.Select();
+
+	for (auto t: tb.all) {
+		std::cout << t.id << "," << t.dbl << std::endl;
+	}
+
+	for (int i=0; i<5; ++i) {
+
+		if ((i&1)==0) {
+
+			Test t0 { i*42 };
+			tb.Delete(t0);
+
+		}
+
+	}
+
+	return 1;
+
+	tb.Select();
+
+	for (auto t: tb.all) {
+		std::cout << t.id << "," << t.dbl << std::endl;
+	}
 
 	return 0;
 }

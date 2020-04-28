@@ -37,7 +37,7 @@ inline bool IsNumeric(const long&)          { return true; }
 inline bool IsNumeric(const unsigned long&) { return true; }
 inline bool IsNumeric(const double&)        { return true; } 
 inline bool IsNumeric(const char*)          { return false; }
-inline bool IsNumeric(const int64_t&)       { return true; }
+//inline bool IsNumeric(const int64_t&)       { return true; }
 
 
 class Cursor {
@@ -49,14 +49,14 @@ public:
 	virtual bool BindBuffer(int pos, unsigned long value)    = 0;
 	virtual bool BindBuffer(int pos, double value)           = 0;
 	virtual bool BindBuffer(int pos, const char* value)      = 0;
-	virtual bool BindBuffer(int pos, int64_t value)          = 0;
+//	virtual bool BindBuffer(int pos, int64_t value)          = 0;
 	virtual void Fetch(int pos, int& var)                    = 0;
 	virtual void Fetch(int pos, unsigned int& var)           = 0;
 	virtual void Fetch(int pos, long& var)                   = 0;
 	virtual void Fetch(int pos, unsigned long& var)          = 0;
 	virtual void Fetch(int pos, double& var)                 = 0;
 	virtual void Fetch(int pos, const char*& var)            = 0;
-	virtual void Fetch(int pos, int64_t& var)                = 0;
+//	virtual void Fetch(int pos, int64_t& var)                = 0;
 };
 
 
