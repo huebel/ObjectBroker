@@ -60,8 +60,14 @@ public:
 	template<class Enum,class=typename std::enable_if< std::is_enum<Enum>::value>::type>
 	void Fetch(int pos, Enum& var)
 	{
-		static_assert(sizeof(Enum)==sizeof(int));
+		static_assert(sizeof(Enum)==sizeof(int), "enum type must have sizeof(int)");
 		Fetch(pos, reinterpret_cast<int&>(var));
+	}
+	void Fetch(int pos, bool& var)
+	{
+		int b = var;
+		Fetch(pos, b);
+		var = b;
 	}
 };
 

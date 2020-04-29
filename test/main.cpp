@@ -2,9 +2,18 @@
 #include <list>
 #include <iostream>
 
+enum E {
+	NONE,
+	FIRST,
+	SECOND,
+	BOTH
+};
+
 struct Test {
 	int	id;
 	double dbl;
+	E e;
+	bool b;
 };
 
 class TestBroker : public ObjectBroker<Test> {
@@ -13,6 +22,7 @@ public:
 	{
 		MapKeyMember(&Test::id, "id");
 		MapMember(&Test::dbl, "double");
+		MapMember(&Test::e, "enum");
 	}
 
 	virtual Test* CreateObject() { return new Test(); }
