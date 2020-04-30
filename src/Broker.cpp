@@ -28,6 +28,7 @@ _BROKERIMP const char* SQLType(const char*)          { return "text"; }
 //_BROKERIMP const char* SQLType(const int64_t&)       { return "integer"; }
 
 
+
 static sqlite3* db = 0;
 
 _BROKERIMP bool OpenDataBase(const std::string& path) {

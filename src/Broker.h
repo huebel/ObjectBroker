@@ -30,6 +30,12 @@ extern _BROKERIMP const char* SQLType(const unsigned long&);
 extern _BROKERIMP const char* SQLType(const double&);
 extern _BROKERIMP const char* SQLType(const char*);
 //extern _BROKERIMP const char* SQLType(const int64_t&);
+template<class Enum,class=typename std::enable_if< std::is_enum<Enum>::value>::type>
+inline const char* SQLType(const Enum&)
+{
+	return SQLType(int());
+}
+
 
 inline bool IsNumeric(const int&)           { return true; }
 inline bool IsNumeric(const unsigned int&)  { return true; }
@@ -38,6 +44,8 @@ inline bool IsNumeric(const unsigned long&) { return true; }
 inline bool IsNumeric(const double&)        { return true; } 
 inline bool IsNumeric(const char*)          { return false; }
 //inline bool IsNumeric(const int64_t&)       { return true; }
+template<class Enum,class=typename std::enable_if< std::is_enum<Enum>::value>::type>
+inline bool IsNumeric(const Enum&)          { return true; }
 
 
 class Cursor {
@@ -50,6 +58,12 @@ public:
 	virtual bool BindBuffer(int pos, double value)           = 0;
 	virtual bool BindBuffer(int pos, const char* value)      = 0;
 //	virtual bool BindBuffer(int pos, int64_t value)          = 0;
+	template<class Enum,class=typename std::enable_if< std::is_enum<Enum>::value>::type>
+	bool BindBuffer(int pos, Enum var)
+	{
+		static_assert(sizeof(Enum)==sizeof(int), "enum type must have sizeof(int)");
+		return BindBuffer(pos, static_cast<int>(var));
+	}
 	virtual void Fetch(int pos, int& var)                    = 0;
 	virtual void Fetch(int pos, unsigned int& var)           = 0;
 	virtual void Fetch(int pos, long& var)                   = 0;
@@ -111,6 +125,10 @@ public:
 	virtual void  CreateIt()               = 0;
 	virtual void* CreateThing()            = 0;
 	virtual void  HandleThing(void* thing) = 0;
+	bool TryCreateTable(const char*& errmsg)
+	{
+		return DoCreateTable(errmsg);
+	}
 protected:
 	Broker(const char* table);
 	void Append(Buffer* buffer);
